@@ -1,5 +1,9 @@
 import unittest
 import logging
+import pandas as pd
+import time
+import os
+
 from selenium import webdriver
 from selenium.webdriver import Firefox
 from selenium.webdriver.common.by import By
@@ -7,10 +11,9 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 from datetime import datetime
 from ru_key import type as t
+from dotenv import load_dotenv
 
-import pandas as pd
-
-import time
+load_dotenv()
 
 logging.basicConfig(level=logging.INFO)
 
@@ -25,7 +28,7 @@ class PythonOrgSearch(unittest.TestCase):
 
     def setUp(self):
         options = webdriver.FirefoxOptions()
-        options.add_argument('--profile=C:/Users/0gl04q/AppData/Roaming/Mozilla/Firefox/Profiles/jhf310pr.ПОЧТА')
+        options.add_argument(f'--profile={os.getenv("PROFILE_PATH")}')
         self.counter = 0
         self.driver = webdriver.Firefox(options=options)
 
@@ -45,7 +48,8 @@ class PythonOrgSearch(unittest.TestCase):
 
             da = row['Дата последнего обращения']
 
-            last_date = pd.to_datetime(row['Дата последнего обращения'], errors='coerce').date() if not pd.isna(da) else None
+            last_date = pd.to_datetime(row['Дата последнего обращения'], errors='coerce').date() if not pd.isna(
+                da) else None
 
             if pd.isna(number_date):
                 break
@@ -71,8 +75,10 @@ class PythonOrgSearch(unittest.TestCase):
 
             time.sleep(5)
 
-            title_element = driver.find_element(By.XPATH, '//input[@class="container--H9L5q size_s--3_M-_"][@type="text"][@name="Subject"][@tabindex="400"]')
-            title_element.send_keys(f'{f" - повторно" if status in ("Повторно", "Первично")  else ""}, организация - {organization}')
+            title_element = driver.find_element(By.XPATH,
+                                                '//input[@class="container--H9L5q size_s--3_M-_"][@type="text"][@name="Subject"][@tabindex="400"]')
+            title_element.send_keys(
+                f'{f" - повторно" if status in ("Повторно", "Первично") else ""}, организация - {organization}')
 
             element = driver.find_element(By.XPATH, text_xpath)
             element.click()
@@ -91,7 +97,10 @@ class PythonOrgSearch(unittest.TestCase):
 
             file_input = driver.find_element(By.XPATH, '//input[@class="desktopInput--3cWPE"]')
 
-            file_input.send_keys(r"C:\Users\0gl04q\PycharmProjects\SendMailAuto\Текущий.png")
+            current_file = os.path.realpath(__file__)
+            current_directory = os.path.dirname(current_file)
+
+            file_input.send_keys(fr"{current_directory}\Текущий.png")
 
             time.sleep(5)
 
@@ -114,13 +123,14 @@ class PythonOrgSearch(unittest.TestCase):
             df.loc[df['Договор / Отчет'] == number_date, 'Статус'] = status
 
             if pd.isna(row['Ссылка на скрин']):
-                df.loc[df['Договор / Отчет'] == number_date, 'Ссылка на скрин'] = fr'\\192.168.10.10\ит\Техподдержка СОУТ\Организации\{organization}'
+                df.loc[df[
+                           'Договор / Отчет'] == number_date, 'Ссылка на скрин'] = fr'{os.getenv("SCREEN_LINK_PATH")}\{organization}'
 
             df.to_excel(file_path, index=False)
 
             self.counter += 1
 
-            logging.info(f"{'-'*5}Обновляем Excel{'-'*5}")
+            logging.info(f"{'-' * 5}Обновляем Excel{'-' * 5}")
 
             time.sleep(5)
 
