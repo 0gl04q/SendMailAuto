@@ -84,8 +84,8 @@ class PythonOrgSearch(unittest.TestCase):
                 case 'Присвоение ID':
                     text_type = f'в информационную систему учета сведений о заключении с работодателем {organization} по гражданско-правовому договору № {number_date} о проведении СОУТ и получения для предстоящей СОУТ ID'
                 case 'Загрузка отчета':
-                    sout_id = f'({sout_id})' if sout_id else ''
-                    text_type = f'во ФГИС сведений о результатах проведения СОУТ в оргаизации {organization} по гражданско-правовому договору № {number_date}{sout_id}'
+                    sout_id = f'({int(sout_id)})' if sout_id else ''
+                    text_type = f'во ФГИС сведений о результатах проведения СОУТ в организации {organization} по гражданско-правовому договору № {number_date}{sout_id}'
 
             t(f' {text_type}', 0.1)
 
@@ -112,7 +112,9 @@ class PythonOrgSearch(unittest.TestCase):
                     status = 'Повторно'
 
             df.loc[df['Договор / Отчет'] == number_date, 'Статус'] = status
-            df.loc[df['Договор / Отчет'] == number_date, 'Ссылка на скрин'] = fr'\\192.168.10.10\ит\Техподдержка СОУТ\Организации\{organization}'
+
+            if pd.isna(row['Ссылка на скрин']):
+                df.loc[df['Договор / Отчет'] == number_date, 'Ссылка на скрин'] = fr'\\192.168.10.10\ит\Техподдержка СОУТ\Организации\{organization}'
 
             df.to_excel(file_path, index=False)
 
