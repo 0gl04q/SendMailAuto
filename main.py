@@ -5,7 +5,6 @@ import time
 import os
 
 from selenium import webdriver
-from selenium.webdriver import Firefox
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
@@ -16,12 +15,6 @@ from dotenv import load_dotenv
 load_dotenv()
 
 logging.basicConfig(level=logging.INFO)
-
-
-def wait_visibility(driver: Firefox, xpath: str) -> None:
-    WebDriverWait(driver, 10).until(
-        EC.visibility_of_element_located((By.XPATH, xpath))
-    )
 
 
 class PythonOrgSearch(unittest.TestCase):
@@ -65,7 +58,9 @@ class PythonOrgSearch(unittest.TestCase):
             # template
             template_xpath = '//*[@id="app-canvas"]/div/div[1]/div[1]/div/div[2]/span/div[2]/div/div/div/div/div/div[2]/div/div/div/div[1]/div/div/a'
 
-            wait_visibility(driver, template_xpath)
+            WebDriverWait(driver, 10).until(
+                EC.visibility_of_element_located((By.XPATH, template_xpath))
+            )
 
             element = driver.find_element(By.XPATH, template_xpath)
             element.click()
@@ -117,6 +112,9 @@ class PythonOrgSearch(unittest.TestCase):
             match status:
                 case 'Не отправлено':
                     status = 'Первично'
+                    if not os.path.isdir(fr'{os.getenv("SCREEN_LINK_PATH")}\{organization}'):
+                        os.mkdir(fr'{os.getenv("SCREEN_LINK_PATH")}\{organization}')
+
                 case 'Первично':
                     status = 'Повторно'
 
@@ -142,4 +140,5 @@ class PythonOrgSearch(unittest.TestCase):
 
 
 if __name__ == "__main__":
+
     unittest.main()
